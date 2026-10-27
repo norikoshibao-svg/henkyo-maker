@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+</head>
+<body>
+<title>辺境大学 募集ページメーカー</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Old+Mincho:wght@600;700&display=swap">
+<style>
+/* Layout: two-pane tool — input sheet on the left, the project page as it will read on the right; stacks on phones */
+:root {
+  --bg: #f3f4f0;
+  --paper: #ffffff;
+  --ink: #1f2722;
+  --muted: #5d6a62;
+  --line: #d7ddd5;
+  --accent: #2f5d46;
+  --accent-ink: #ffffff;
+  --tag: #e6ede6;
+  --warn: #8a5a12;
+  --warn-bg: #fbf1dd;
+  --f-display: "Zen Old Mincho", "Hiragino Mincho ProN", "Yu Mincho", serif;
+  --f-body: "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+  --f-label: ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #151a17; --paper: #1d2420; --ink: #e5ebe6; --muted: #9eaba3; --line: #33403a;
+    --accent: #7fb596; --accent-ink: #10201a; --tag: #26332c; --warn: #e7bd73; --warn-bg: #3a2f1a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #151a17; --paper: #1d2420; --ink: #e5ebe6; --muted: #9eaba3; --line: #33403a;
+  --accent: #7fb596; --accent-ink: #10201a; --tag: #26332c; --warn: #e7bd73; --warn-bg: #3a2f1a;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.75;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 56px;
+}
+.wrap { max-width: 1240px; margin: 0 auto; display: grid; gap: 24px; }
+header h1 { font-family: var(--f-display); font-size: clamp(22px, 3vw, 30px); margin: 0; text-wrap: balance; letter-spacing: .02em; }
+header p { margin: 4px 0 0; color: var(--muted); max-width: 68ch; }
+.eyebrow { font-family: var(--f-label); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
+.grid { display: grid; grid-template-columns: minmax(0, 400px) minmax(0, 1fr); gap: 24px; align-items: start; }
+@media (max-width: 880px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+.pane { background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 20px; min-width: 0; }
+form { display: grid; gap: 14px; }
+fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 12px; }
+legend { font-weight: 700; font-size: 13px; margin-bottom: 4px; padding: 0; }
+.sep { border-top: 1px solid var(--line); padding-top: 14px; }
+label { display: grid; gap: 4px; font-size: 13px; font-weight: 500; }
+label small { font-weight: 400; color: var(--muted); }
+.req { color: var(--accent); font-size: 11px; margin-left: 4px; }
+input, select, textarea {
+  font: inherit; font-size: 14px; color: var(--ink); background: var(--bg); border: 1px solid var(--line);
+  border-radius: 6px; padding: 8px 10px; width: 100%; min-width: 0;
+}
+textarea { resize: vertical; line-height: 1.6; }
+input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@media (max-width: 420px) { .two { grid-template-columns: 1fr; } }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; }
+button { font: inherit; font-size: 14px; cursor: pointer; border-radius: 6px; padding: 9px 14px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); }
+button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 700; }
+button:disabled { opacity: .55; cursor: default; }
+.status { font-size: 13px; color: var(--muted); min-height: 1.4em; }
+.status.err { color: var(--warn); }
+.out-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 14px; }
+.out-head .actions button { font-size: 13px; padding: 7px 12px; }
+.doc { max-width: 72ch; }
+.doc .badge { display: inline-block; font-size: 12px; background: var(--tag); color: var(--accent); border-radius: 4px; padding: 1px 8px; margin-right: 6px; }
+.doc h2.title { font-family: var(--f-display); font-size: clamp(20px, 2.6vw, 26px); line-height: 1.5; margin: 10px 0 6px; text-wrap: balance; }
+.doc .org { color: var(--muted); margin: 0; font-size: 14px; }
+.doc .deadline { font-size: 13px; color: var(--muted); margin: 2px 0 14px; }
+.doc .lead { font-size: 16px; margin: 0 0 8px; }
+.sec { border-top: 1px solid var(--line); padding-top: 14px; margin-top: 18px; position: relative; }
+.sec h3 { margin: 0 0 8px; font-size: 16px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; }
+.sec h3 .eyebrow { font-weight: 400; }
+.sec p { margin: 0 0 8px; white-space: pre-wrap; }
+.sec ul, .sec ol { margin: 0 0 8px; padding-left: 1.3em; }
+.copy1 { position: absolute; right: 0; top: 12px; font-size: 12px; padding: 3px 9px; color: var(--muted); }
+dl.cond { display: grid; grid-template-columns: 7em minmax(0, 1fr); gap: 6px 14px; margin: 0; }
+dl.cond dt { color: var(--muted); font-size: 13px; }
+dl.cond dd { margin: 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips span { background: var(--tag); border-radius: 999px; padding: 2px 12px; font-size: 13px; }
+.quote { border-left: 3px solid var(--line); padding-left: 12px; }
+.sched { display: grid; grid-template-columns: 4.5em minmax(0, 1fr); gap: 4px 12px; }
+.sched b { font-weight: 700; font-variant-numeric: tabular-nums; }
+.fixed { color: var(--muted); font-size: 12px; margin-left: 6px; font-weight: 400; }
+.todo { background: var(--warn-bg); color: var(--warn); border-radius: 3px; padding: 0 3px; }
+.empty { color: var(--muted); }
+.empty ol { padding-left: 1.3em; }
+.note { font-size: 12px; color: var(--muted); }
+.drop { border: 1.5px dashed var(--accent); border-radius: 8px; padding: 14px; display: grid; gap: 8px; background: var(--tag); }
+.drop.over { background: var(--bg); }
+.drop strong { font-size: 14px; }
+.drop p { margin: 0; font-size: 13px; color: var(--muted); }
+.drop input[type=file] { background: var(--paper); font-size: 13px; }
+.deckname { font-size: 13px; color: var(--accent); word-break: break-all; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">HENKYO UNIVERSITY · PROJECT PAGE</div>
+    <h1>辺境大学 募集ページメーカー</h1>
+    <p>九州大学発スタートアップのピッチ資料（PDF）か事業内容を入れると、辺境大学 実践型インターンシップの募集ページ（URBANIX・ライフタイムベンチャーズのページと同じ構成）の文章ができます。条件は入力したまま載り、本文は Claude が下書きします。</p>
+  </header>
+
+  <div class="grid">
+    <section class="pane" aria-label="入力">
+      <form id="f">
+        <div class="drop" id="drop">
+          <strong>ピッチ資料から作る</strong>
+          <p>PDFを選ぶかここに落とすと、資料から会社情報を読み取って下の入力欄を埋め、そのまま募集ページの文章までつくります。</p>
+          <input type="file" id="deck" accept="application/pdf,.pdf">
+          <div class="deckname" id="deckname"></div>
+        </div>
+        <fieldset class="sep">
+          <legend>受入企業</legend>
+          <label>会社名<span class="req">必須</span><input id="company" required></label>
+          <div class="two">
+            <label>所在地<input id="place" placeholder="福岡県福岡市"></label>
+            <label>代表者（肩書・氏名）<input id="rep" placeholder="代表取締役　九大 太郎"></label>
+          </div>
+          <label>事業内容<span class="req">必須</span><small>何をつくり、誰に、どう届けているか。資料の文章をそのまま貼ってかまいません。</small>
+            <textarea id="biz" rows="7" required></textarea></label>
+          <label>九州大学との関係<small>研究室・技術シーズ・創業の経緯など</small>
+            <textarea id="kyudai" rows="3"></textarea></label>
+          <label>インターンに頼みたいこと<small>空欄なら事業内容から提案します</small>
+            <textarea id="ask" rows="3"></textarea></label>
+          <label>受け継ぐ地域文化資本<small>例：不動産物件、研究シーズ、地域の産業技術</small><input id="capital"></label>
+        </fieldset>
+
+        <fieldset class="sep">
+          <legend>条件サマリー（このまま掲載）</legend>
+          <label>実施期間<input id="period" value="2026年12月〜2027年3月（3か月〜）"></label>
+          <label>稼働頻度<input id="freq" value="週2日・1日4時間程度〜（授業・試験優先で相談可）"></label>
+          <div class="two">
+            <label>形式<select id="format"><option>併用</option><option>現地</option><option>オンライン</option></select></label>
+            <label>言語<select id="lang"><option>日本語</option><option>日本語（英語対応可）</option><option>英語</option></select></label>
+          </div>
+          <label>報酬<input id="pay" value="時給1,100円スタート（現地出社時の交通費を支給、上限あり）"></label>
+          <label>報酬の補足<input id="paynote" value="パート雇用。受入企業から学生に直接支給します。"></label>
+          <div class="two">
+            <label>募集人数<input id="count" value="2名"></label>
+            <label>応募締切<input id="deadline" value="2027年3月31日"></label>
+          </div>
+        </fieldset>
+
+        <div class="actions sep">
+          <button type="submit" class="primary" id="go">文章をつくる</button>
+          <button type="button" id="stop" hidden>止める</button>
+          <button type="button" id="sample-fill">入力例を入れる</button>
+          <button type="button" id="copy-prompt">指示文をコピー</button>
+        </div>
+        <div class="status" id="status" role="status"></div>
+        <p class="note" id="fallback-note" hidden>この画面から Claude を呼べない環境です。「指示文をコピー」で Claude のチャットに貼ると同じ文章が返ってきます。</p>
+      </form>
+    </section>
+
+    <section class="pane" aria-label="できあがった文章">
+      <div class="out-head">
+        <div class="eyebrow">プレビュー</div>
+        <div class="actions">
+          <button type="button" id="copy-all" disabled>全文をコピー</button>
+        </div>
+      </div>
+      <div id="out" class="doc"></div>
+    </section>
+  </div>
+</div>
+
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const FIELDS = ["company","place","rep","biz","kyudai","ask","capital","period","freq","format","lang","pay","paynote","count","deadline"];
+  const DOMAINS = ["事業理解","現場参加","価値の言語化","プロジェクト実践","広報・発信"];
+  const SUPPORT = "事前研修、定期面談、振り返り、成果発表会をリジェQが行います。ひとりで抱え込まなくて大丈夫です。";
+  const SELECTION = "応募 → リジェQとの面談 → 企業との顔合わせ → 参加決定 → 受入企業と雇用契約";
+  const CLOSING = "この問いに、一緒に向き合ってみませんか。";
+
+  const EXAMPLE = {
+    company: "（例）株式会社ミナモラボ",
+    place: "福岡県福岡市西区",
+    rep: "代表取締役　水面 花子",
+    biz: "九州大学で開発した、海水からリチウムを低コストで回収する膜分離技術を事業化している。現在は佐賀県の塩田と組んで小型プラントの実証中。電池メーカーと素材商社への提案を始めたが、どの用途から攻めるかはまだ決めきれていない。社員5名（うち研究者3名）。",
+    kyudai: "九州大学大学院工学研究院の研究室で10年続けてきた膜の研究がもと。代表は同研究室の博士課程修了。2025年4月創業の九州大学発ベンチャー。",
+    ask: "用途ごとの市場調査、実証先の塩田でのヒアリング、展示会資料づくり",
+    capital: "研究シーズ（膜分離技術）、有明海沿岸の塩づくり"
+  };
+
+  function readInputs() { const o = {}; FIELDS.forEach((k) => (o[k] = $(k).value.trim())); return o; }
+  try {
+    const saved = JSON.parse(localStorage.getItem("hk-draft") || "null");
+    if (saved) FIELDS.forEach((k) => { if (saved[k] != null && $(k)) $(k).value = saved[k]; });
+  } catch (e) {}
+  $("f").addEventListener("input", () => { try { localStorage.setItem("hk-draft", JSON.stringify(readInputs())); } catch (e) {} });
+
+  function buildPrompt(v) {
+    return `あなたは「辺境大学 実践型インターンシップ」（一般社団法人リジェネラティブQ運営）の募集ページの編集者です。九州大学発スタートアップの受入プロジェクトの募集ページ本文を書いてください。
+
+# 入力（受入企業から）
+会社名: ${v.company || "未記入（参考資料から読み取る）"}
+所在地: ${v.place || "未記入"}
+代表者: ${v.rep || "未記入"}
+事業内容: ${v.biz || "未記入（参考資料から読み取る）"}
+九州大学との関係: ${v.kyudai || "未記入"}
+インターンに頼みたいこと: ${v.ask || "未記入（事業内容から提案してよい）"}
+受け継ぐ地域文化資本: ${v.capital || "未記入"}
+実施期間: ${v.period}
+稼働頻度: ${v.freq}
+形式: ${v.format}
+
+# 手本にする文体（同じサイトの既存ページから）
+- タイトル: 「空いている場所と「やってみたい人」をつなぐ。Placebookで、まちに1日出店を生み出す」
+- リード: 「福岡のまちを歩いて空きスペースを見つけ、オーナーと出店者に声をかけ、1日出店の当日まで伴走する。九大発の都市スタートアップで、場所に人が集まる瞬間をつくるインターンです。」
+- 問い: 「空いている場所と「やってみたい人」は、どうすれば出会えるのか？その答えを、まちの中で実際に試しながら探します。」
+- 募集の背景の締め: 「学生には「お手伝い」ではなく、担当エリアを持つ一人の担当者として、この問いに向き合ってほしいと思っています。」
+
+# 書き方のルール
+- です・ます調。短い文。学生（大学1〜3年生、文理不問）が読んで、何をするのか具体的に想像できる言葉で書く。
+- 専門用語は一度だけ、やさしく言い換えて添える。
+- 入力にない事実（数字、実績、提携先、受賞歴、人名）は作らない。足りない情報は【要確認：何を】と書いて埋めずに残す。
+- 「社会課題」「リジェネラティブ」「イノベーション」「ワクワク」「成長できる」などの決まり文句は使わない（運営団体名「リジェQ」は可）。
+- 学生は「お手伝い」ではなく担当を持つ一人として扱う書き方にする。
+- タイトルは30〜45字。会社や技術が何をしているかが動詞で分かるように。「。」で2文に分けてもよい。
+- リードは100〜130字、最後は「〜インターンです。」で終える。
+- 問いは「〜は、どうすれば〜のか？」の形の1文に、「その答えを、〜しながら探します。」を続ける。
+- 代表メッセージは代表者の一人称の下書き（200〜300字）。最後に分野不問・歓迎の一言を入れる。
+- 具体的な実践内容は、導入1文と、①〜⑤の流れ（見つける→動かす→形にする→振り返る、のように時系列）。
+- スケジュールは実施期間の月ごと。最初の月の前月に「選考・面談・顔合わせ、オリエンテーション」、最後の月に「振り返り、成果発表」を入れる。
+- 実践の領域は次から当てはまるものを2〜5個: ${DOMAINS.join("、")}
+
+# 出力
+次の形のJSONだけを返してください。説明文は不要です。
+{
+  "title": "タイトル",
+  "lead": "リード文",
+  "question": "このプロジェクトで取り組む問い",
+  "company": "受入企業について（300〜500字。段落は\\nで区切る。創業の経緯、事業の中身、九州大学との関係、いまの段階）",
+  "capital": "受け継ぐ地域文化資本（短い語句。入力があればそのまま）",
+  "message": "代表メッセージ（「」なしの本文）",
+  "background": "募集の背景（150〜250字）",
+  "practice_intro": "具体的な実践内容の導入1文",
+  "practice_steps": [{"name": "場所を見つける", "detail": "…"}],
+  "roles": [{"name": "テーマ名", "detail": "1文"}],
+  "domains": ["事業理解"],
+  "deliverables": ["成果物1"],
+  "schedule": [{"month": "11月", "content": "…"}],
+  "output_note": "成果物について（2〜3文。最後に「（会社名）のメンバーがメンターとして伴走します。」）",
+  "eligibility": ["学年・専攻不問（1〜2年生も歓迎）"],
+  "who": "求める人物像（3〜4文。必須でないスキルも書く）",
+  "target": "大学生・大学院生（学年・学部不問）"
+}
+practice_steps は5個、roles は4〜5個、deliverables は3〜5個。` + (deckText ? `
+
+# 参考資料：受入企業のピッチ資料（抜粋）
+入力欄の内容を優先し、足りない具体（技術の中身、顧客、いまの段階）をここから補ってください。資料にある数字は使ってよいが、市場規模などの大きな数字をタイトルやリードに持ち込まないこと。学生向けにかみくだいて書くこと。
+"""
+${deckText.slice(0, 20000)}
+"""` : "");
+  }
+
+  // ---------- pitch deck (PDF) ----------
+  let deckText = "";
+  const PDFJS = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/";
+  function loadScript(src) {
+    return new Promise((res, rej) => { const s = document.createElement("script"); s.src = src; s.onload = res; s.onerror = () => rej(new Error("load")); document.head.appendChild(s); });
+  }
+  async function pdfjs() {
+    if (!window.pdfjsLib) {
+      await loadScript(PDFJS + "pdf.min.js");
+      await loadScript(PDFJS + "pdf.worker.min.js"); // runs in-page; the frame does not allow cross-origin workers
+    }
+    return window.pdfjsLib;
+  }
+  async function readPdf(file) {
+    const lib = await pdfjs();
+    const pdf = await lib.getDocument({ data: new Uint8Array(await file.arrayBuffer()), isEvalSupported: false }).promise;
+    const pages = [];
+    for (let i = 1; i <= Math.min(pdf.numPages, 60); i++) {
+      const tc = await (await pdf.getPage(i)).getTextContent();
+      pages.push(`--- p.${i} ---\n` + tc.items.map((it) => it.str + (it.hasEOL ? "\n" : " ")).join(""));
+    }
+    return { pdf, text: pages.join("\n").normalize("NFKC").replace(/[ \t]+/g, " ").replace(/\n{3,}/g, "\n\n") };
+  }
+  async function pageImages(pdf, max) {
+    const out = [];
+    for (let i = 1; i <= Math.min(pdf.numPages, max); i++) {
+      const page = await pdf.getPage(i);
+      const vp0 = page.getViewport({ scale: 1 });
+      const vp = page.getViewport({ scale: Math.min(2, 1400 / vp0.width) });
+      const c = document.createElement("canvas"); c.width = vp.width; c.height = vp.height;
+      await page.render({ canvasContext: c.getContext("2d"), viewport: vp }).promise;
+      out.push(await new Promise((r) => c.toBlob(r, "image/jpeg", 0.85)));
+    }
+    return out;
+  }
+  function fillPrompt(text) {
+    return `次は九州大学発スタートアップのピッチ資料${text ? "のテキスト" : "（画像）"}です。インターン募集ページの入力欄を埋めるため、資料から読み取れることだけで次のJSONを返してください。資料にないことは空文字 "" にし、推測で埋めないでください。
+
+{
+  "company": "会社名（未設立ならプロジェクト名や研究室名）",
+  "place": "所在地（都道府県・市）",
+  "rep": "代表者の肩書と氏名（例：代表取締役　山田 太郎）。CEO候補などはそのまま書く",
+  "biz": "事業内容を200〜400字で。何の技術で、何をつくり、誰に届けるのか、いまどの段階か",
+  "kyudai": "九州大学との関係（研究室・教員・技術シーズ・創業経緯）を100〜200字で",
+  "ask": "この会社がいま人手を必要としていそうな仕事を、資料から読み取れる範囲で3つほど、読点区切りで",
+  "capital": "受け継いでいるもの（研究シーズ名など）を短い語句で"
+}
+${text ? `\n"""\n${text.slice(0, 30000)}\n"""` : ""}`;
+  }
+  const FILLKEYS = ["company","place","rep","biz","kyudai","ask","capital"];
+
+  async function handleDeck(file) {
+    if (!file) return;
+    if (!/pdf$/i.test(file.type) && !/\.pdf$/i.test(file.name)) { setStatus("PDFを選んでください。PowerPointやGoogleスライドはPDFに書き出してから入れてください。", true); return; }
+    $("deckname").textContent = file.name;
+    setStatus("資料を読み込んでいます…");
+    let pdf, text;
+    try { ({ pdf, text } = await readPdf(file)); }
+    catch (e) { setStatus("PDFを読み込めませんでした。パスワード付きや壊れたファイルでないか確かめてください。", true); return; }
+    deckText = text.replace(/--- p\.\d+ ---/g, "").trim().length > 300 ? text : "";
+
+    if (!sample) {
+      setStatus(deckText ? "資料を読み込みました。「指示文をコピー」を押して Claude のチャットに貼ると、資料をもとに文章ができます。" : "資料から文字を読み取れませんでした。", !deckText);
+      return;
+    }
+    let images;
+    if (!deckText) {
+      const lim = await sample.limits().catch(() => null);
+      if (!lim || !lim.images) { setStatus("この資料は文字が画像になっていて読み取れませんでした。事業内容を手で入れてください。", true); return; }
+      setStatus("文字が画像になっている資料なので、ページを画像にしています…");
+      images = await pageImages(pdf, Math.min(lim.images.maxCount, 12));
+    }
+    ctl = new AbortController(); busy(true);
+    setStatus("資料から会社情報を読み取っています…");
+    try {
+      const d = await sample.json(fillPrompt(deckText), { signal: ctl.signal, images, modelTier: "default" });
+      let filled = 0;
+      FILLKEYS.forEach((k) => { const val = (d && typeof d[k] === "string") ? d[k].trim() : ""; if (val && !$(k).value.trim()) { $(k).value = val; filled++; } });
+      try { localStorage.setItem("hk-draft", JSON.stringify(readInputs())); } catch (e) {}
+      if (!$("company").value.trim() || !$("biz").value.trim()) { setStatus("資料から会社名か事業内容が読み取れませんでした。入力してから「文章をつくる」を押してください。", true); return; }
+      busy(false);
+      setStatus(`入力欄を${filled}か所埋めました。続けて文章をつくります…`);
+      await generate();
+    } catch (err) { showErr(err); }
+    finally { busy(false); }
+  }
+  $("deck").addEventListener("change", (e) => handleDeck(e.target.files[0]));
+  const drop = $("drop");
+  ["dragenter","dragover"].forEach((t) => drop.addEventListener(t, (e) => { e.preventDefault(); drop.classList.add("over"); }));
+  ["dragleave","drop"].forEach((t) => drop.addEventListener(t, () => drop.classList.remove("over")));
+  drop.addEventListener("drop", (e) => { e.preventDefault(); handleDeck(e.dataTransfer.files[0]); });
+
+  let lastDoc = null;
+  const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const rich = (s) => esc(s).replace(/【要確認[^】]*】/g, (m) => `<span class="todo">${m}</span>`);
+  const arr = (a) => (Array.isArray(a) ? a : []);
+
+  function toSections(v, d) {
+    // one list drives both the preview and the plain-text copy, in the site's order
+    const steps = arr(d.practice_steps).map((s, i) => `${"①②③④⑤⑥⑦"[i] || "・"} ${s.name}：${s.detail}`);
+    return [
+      { key: "cond", en: "CONDITIONS", ja: "条件サマリー", fixed: true, rows: [
+        ["実施期間", v.period], ["稼働頻度", v.freq], ["形式", v.format], ["言語", v.lang],
+        ["報酬", v.pay + (v.paynote ? "\n" + v.paynote : "")], ["募集人数", v.count]] },
+      { en: "QUESTION", ja: "このプロジェクトで取り組む問い", text: d.question },
+      { en: "COMPANY", ja: "受入企業について", text: d.company },
+      { ja: "受け継ぐ地域文化資本", text: d.capital || v.capital },
+      { ja: "代表メッセージ", quote: d.message, sign: `${v.company}　${v.rep || "【要確認：代表者の肩書・氏名】"}` },
+      { en: "BACKGROUND", ja: "募集の背景", text: d.background },
+      { en: "PRACTICE", ja: "具体的な実践内容", text: d.practice_intro, list: steps, plain: true },
+      { ja: "取り組みのテーマ・役割の例", list: arr(d.roles).map((r) => `${r.name}：${r.detail}`), after: "※ 一例です。ほかのテーマも、相談できます。" },
+      { ja: "実践の領域", chips: arr(d.domains).filter((x) => DOMAINS.includes(x)) },
+      { ja: "期待する成果物", list: arr(d.deliverables) },
+      { en: "SCHEDULE", ja: "スケジュール", sched: arr(d.schedule) },
+      { en: "OUTPUT", ja: "成果物について", text: d.output_note },
+      { en: "ELIGIBILITY", ja: "応募資格", list: arr(d.eligibility) },
+      { en: "WHO", ja: "求める人物像・対象", text: d.who, after: "対象：" + (d.target || "大学生・大学院生（学年・学部不問）") },
+      { en: "SUPPORT", ja: "リジェQの伴走", text: SUPPORT, fixed: true },
+      { en: "SELECTION", ja: "選考の流れ", text: SELECTION, fixed: true },
+    ];
+  }
+
+  function secText(s) {
+    const out = [];
+    if (s.rows) s.rows.forEach(([k, val]) => out.push(`${k}\n${val}`));
+    if (s.text) out.push(s.text);
+    if (s.quote) out.push(`「${s.quote}」\n\n${s.sign}`);
+    if (s.list) s.list.forEach((x) => out.push(s.plain ? x : `・${x}`));
+    if (s.chips) out.push(s.chips.join("\n"));
+    if (s.sched) s.sched.forEach((r) => out.push(`${r.month}\n${r.content}`));
+    if (s.after) out.push(s.after);
+    return out.join("\n");
+  }
+
+  function fullText(v, d) {
+    const head = [`募集中`, d.title, ``, `${v.company}｜${v.place}`, ``, `応募締切：${v.deadline}`, ``, d.lead];
+    const body = toSections(v, d).map((s) => `\n${s.en ? s.en + "\n" : ""}${s.ja}\n\n${secText(s)}`);
+    return head.join("\n") + "\n" + body.join("\n") + `\n\n${CLOSING}`;
+  }
+
+  function render(v, d) {
+    lastDoc = { v, d };
+    const secs = toSections(v, d);
+    let h = `<span class="badge">募集中</span>
+      <h2 class="title">${rich(d.title)}</h2>
+      <p class="org">${esc(v.company)}｜${esc(v.place)}</p>
+      <p class="deadline">応募締切：${esc(v.deadline)}</p>
+      <p class="lead">${rich(d.lead)}</p>`;
+    secs.forEach((s, i) => {
+      h += `<div class="sec"><h3>${s.en ? `<span class="eyebrow">${s.en}</span>` : ""}${esc(s.ja)}${s.fixed ? '<span class="fixed">固定文・入力どおり</span>' : ""}</h3>`;
+      if (s.rows) h += `<dl class="cond">${s.rows.map(([k, val]) => `<dt>${esc(k)}</dt><dd style="white-space:pre-wrap">${rich(val)}</dd>`).join("")}</dl>`;
+      if (s.text) h += `<p>${rich(s.text)}</p>`;
+      if (s.quote) h += `<div class="quote"><p>「${rich(s.quote)}」</p><p class="note">${rich(s.sign)}</p></div>`;
+      if (s.list && s.list.length) h += s.plain ? `<p>${s.list.map(rich).join("\n")}</p>` : `<ul>${s.list.map((x) => `<li>${rich(x)}</li>`).join("")}</ul>`;
+      if (s.chips) h += `<div class="chips">${s.chips.map((c) => `<span>${esc(c)}</span>`).join("")}</div>`;
+      if (s.sched) h += `<div class="sched">${s.sched.map((r) => `<b>${esc(r.month)}</b><span>${rich(r.content)}</span>`).join("")}</div>`;
+      if (s.after) h += `<p class="note">${rich(s.after)}</p>`;
+      h += `<button type="button" class="copy1" data-i="${i}">コピー</button></div>`;
+    });
+    h += `<div class="sec"><p>${CLOSING}</p></div>`;
+    $("out").innerHTML = h;
+    $("copy-all").disabled = false;
+  }
+
+  function renderEmpty() {
+    $("out").innerHTML = `<div class="empty">
+      <p>左に事業内容を入れて「文章をつくる」を押すと、ここに次の順で募集ページができます。【要確認】と出た部分は、受入企業に確かめて埋めてください。</p>
+      <ol><li>タイトル・リード文</li><li>条件サマリー（入力どおり）</li><li>取り組む問い</li><li>受入企業について・受け継ぐ地域文化資本</li><li>代表メッセージ（下書き）</li><li>募集の背景</li><li>具体的な実践内容①〜⑤・役割の例</li><li>実践の領域・期待する成果物</li><li>スケジュール・成果物について</li><li>応募資格・求める人物像</li><li>リジェQの伴走・選考の流れ（固定文）</li></ol>
+    </div>`;
+  }
+  renderEmpty();
+
+  async function copy(text, btn) {
+    const orig = btn.textContent;
+    try { await navigator.clipboard.writeText(text); btn.textContent = "コピーしました"; }
+    catch (e) {
+      const ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta); ta.select();
+      try { document.execCommand("copy"); btn.textContent = "コピーしました"; } catch (_) { btn.textContent = "コピーできませんでした"; }
+      ta.remove();
+    }
+    setTimeout(() => (btn.textContent = orig), 1600);
+  }
+  $("out").addEventListener("click", (e) => {
+    const b = e.target.closest(".copy1"); if (!b || !lastDoc) return;
+    const s = toSections(lastDoc.v, lastDoc.d)[+b.dataset.i];
+    copy(secText(s), b);
+  });
+  $("copy-all").addEventListener("click", (e) => { if (lastDoc) copy(fullText(lastDoc.v, lastDoc.d), e.currentTarget); });
+  $("copy-prompt").addEventListener("click", (e) => {
+    const v = readInputs();
+    if ((!v.company || !v.biz) && !deckText) { setStatus("会社名と事業内容を入れるか、ピッチ資料のPDFを入れてください。", true); return; }
+    copy(buildPrompt(v), e.currentTarget);
+  });
+  $("sample-fill").addEventListener("click", () => {
+    Object.entries(EXAMPLE).forEach(([k, val]) => ($(k).value = val));
+    setStatus("架空の入力例を入れました。自社の内容に書き換えて使ってください。");
+  });
+
+  function setStatus(t, err) { $("status").textContent = t; $("status").classList.toggle("err", !!err); }
+
+  let sample = null, ctl = null;
+  (async () => {
+    try { sample = window.claude ? await window.claude.use("sample") : null; } catch (e) { sample = null; }
+    if (!sample) { $("go").disabled = true; $("fallback-note").hidden = false; }
+  })();
+
+  const ERR = {
+    not_granted: "Claude の利用が許可されませんでした。「指示文をコピー」でチャットに貼っても作れます。",
+    sampling_disabled: "このアカウントでは画面から Claude を呼べません。「指示文をコピー」を使ってください。",
+    rate_limited: "呼び出しが続いたため一時的に止まっています。少し待ってからもう一度押してください。",
+    invalid_json: "返ってきた文章の形が崩れていました。もう一度押してください。",
+    refused: "この入力では文章を作れませんでした。事業内容の書き方を変えてみてください。",
+    session_expired: "ログインが切れています。claude.ai に入り直してください。",
+  };
+
+  function busy(on) { $("go").disabled = on || !sample; $("deck").disabled = on; $("stop").hidden = !on; if (!on) ctl = null; }
+  function showErr(err) {
+    if (err && err.code === "cancelled") setStatus("止めました。");
+    else if (err && (err.code === "not_granted" || err.code === "sampling_disabled")) { setStatus(ERR[err.code], true); sample = null; $("fallback-note").hidden = false; }
+    else if (err && err.code === "image_rejected") setStatus("資料の画像を送れませんでした。事業内容を手で入れてください。", true);
+    else setStatus(ERR[err && err.code] || "うまく作れませんでした。もう一度押してください。", true);
+  }
+  $("f").addEventListener("submit", (e) => { e.preventDefault(); generate(); });
+  async function generate() {
+    const v = readInputs();
+    if (!v.company || !v.biz) { setStatus("会社名と事業内容を入れてください。", true); return; }
+    if (!sample) { $("fallback-note").hidden = false; return; }
+    ctl = new AbortController(); busy(true);
+    setStatus("考えています…（30秒〜1分ほどかかります）");
+    try {
+      const d = await sample.json(buildPrompt(v), {
+        signal: ctl.signal, cache: false,
+        onText: ({ text }) => setStatus(`書いています… ${text.length.toLocaleString()}文字`),
+      });
+      if (!d || typeof d !== "object" || !d.title) throw { code: "invalid_json" };
+      render(v, d);
+      setStatus("できました。【要確認】の部分を埋めてから掲載してください。");
+    } catch (err) { showErr(err); }
+    finally { busy(false); }
+  }
+  $("stop").addEventListener("click", () => ctl && ctl.abort());
+})();
+</script>
+
+</body>
+</html>
